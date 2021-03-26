@@ -3,6 +3,10 @@ const Path = require('path')
 const Axios = require('axios');
 const { resolve } = require('path');
 
+
+const { Chess } = require('chess.js')
+
+
 function downloadPGN(req, res) {  
     
     const url = `https://api.chess.com/pub/player/${req.body.username}/games/2021/03/pgn`;
@@ -45,6 +49,18 @@ function downloadPGN(req, res) {
                     
                 }
                 console.log(array[1]);
+                const chess = new Chess();
+                if (chess.load_pgn(array[1])) {
+                    console.log("Final position is ", chess.fen());
+                }
+
+                const chess1 = new Chess();
+                const history = chess.history();
+                for (let i = 0; i < history.length && i < 10; i++) {
+                    chess1.move(history[i]);
+                }
+                console.log("Position at move 10 is ", chess1.fen());
+
                 return res.status(200).send({message: "Done"});
             });
         })
