@@ -13,9 +13,7 @@ function downloadPGN(req, res) {
     let dir = Path.join(__dirname, req.body.username);
     fs.mkdir(dir, async (err) => {
         if (err) {
-            return new Promise((resolve, _) => {
-                resolve();
-            })
+            return analyze(req, res);
         }
         const writer = fs.createWriteStream(Path.join(dir, "temp.pgn"));
         const response = await Axios({
@@ -28,48 +26,53 @@ function downloadPGN(req, res) {
     
         
         writer.on('finish', () => {
-            var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, "temp.pgn"));
-            
-            let data = ''
-            
-            readStream.on('data', function (chunk) {
-                data += chunk.toString();
-                console.log(chunk.length);
-            })
-            
-            
-            readStream.on('end', function () {
-                const pgnParser = require('pgn-parser');
-                let array = data.split('[Event "Live Chess"]');
-                console.log(array.length);
-                for (let i = 1; i < array.length; i++) {
-                    
-                    newStr = '[Event "Live Chess"]' + array[i];
-                    array[i] = newStr;
-                    
-                }
-                console.log(array[1]);
-                const chess = new Chess();
-                if (chess.load_pgn(array[1])) {
-                    console.log("Final position is ", chess.fen());
-                }
-
-                const chess1 = new Chess();
-                const history = chess.history();
-                for (let i = 0; i < history.length && i < 10; i++) {
-                    chess1.move(history[i]);
-                }
-                console.log("Position at move 10 is ", chess1.fen());
-
-                return res.status(200).send({message: "Done"});
-            });
+            return analyze(req, res);
         })
         writer.on('error', reject)
         
     });
     
 }
+function analyze(req, res) {
+    var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, "temp.pgn"));
+    
+    let data = ''
+    
+    readStream.on('data', function (chunk) {
+        data += chunk.toString();
+        console.log(chunk.length);
+    })
+    
+    
+    readStream.on('end', function () {
+        const pgnParser = require('pgn-parser');
+        let array = data.split('[Event "Live Chess"]');
+        console.log(array.length);
+        for (let i = 1; i < array.length; i++) {
+            
+            newStr = '[Event "Live Chess"]' + array[i];
+            array[i] = newStr;
+            
+        }
+        
+        for (let k = 1; k < 50; k++) {
+            let chess = new Chess();
+            if (chess.load_pgn(array[k])) {
+                console.log(`Final position of game ${k} is `, chess.fen());
+            }
 
+            let chess1 = new Chess();
+            const history = chess.history();
+            for (let i = 0; i < history.length && i < 10; i++) {
+                chess1.move(history[i]);
+            }
+            console.log(`Position of game ${k} at move 10 is `, chess1.fen());
+
+        }
+
+        return res.status(200).send({message: "Done"});
+    });
+}
 function helper(req, res) {
     downloadPGN(req, res);
 }
