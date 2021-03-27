@@ -47,23 +47,31 @@ function analyze(req, res) {
     readStream.on('end', function () {
         const pgnParser = require('pgn-parser');
         let array = data.split('[Event "Live Chess"]');
-        console.log(array.length);
+        const timeControl = req.body.timeControl;
+        console.log(timeControl);
         for (let i = 1; i < array.length; i++) {
             
             newStr = '[Event "Live Chess"]' + array[i];
             array[i] = newStr;
             
         }
-        
-        for (let k = 1; k < 50; k++) {
+        console.log(array[1]);
+        let numberOfGames = 50;
+
+        for (let k = 1; k < array.length && k < numberOfGames; k++) {
             let chess = new Chess();
+            
             if (chess.load_pgn(array[k])) {
+                console.log(chess.header());
                 console.log(`Final position of game ${k} is `, chess.fen());
             }
-
+            if (timeControl && Number(chess.header().TimeControl) !== timeControl) {
+                numberOfGames++;
+                continue;
+            }
             let chess1 = new Chess();
             const history = chess.history();
-            for (let i = 0; i < history.length && i < 10; i++) {
+            for (let i = 0; i < history.length && i < req.body.numOfMoves; i++) {
                 chess1.move(history[i]);
             }
             console.log(`Position of game ${k} at move 10 is `, chess1.fen());
