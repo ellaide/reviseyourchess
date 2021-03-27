@@ -48,6 +48,7 @@ function analyze(req, res) {
         const pgnParser = require('pgn-parser');
         let array = data.split('[Event "Live Chess"]');
         const timeControl = req.body.timeControl;
+        const fen = req.body.fen;
         console.log(timeControl);
         for (let i = 1; i < array.length; i++) {
             
@@ -57,10 +58,13 @@ function analyze(req, res) {
         }
         console.log(array[1]);
         let numberOfGames = 50;
-
+        let result = 0;
+        let won = 0;
+        let lost = 0;
+        let drawn = 0;
         for (let k = 1; k < array.length && k < numberOfGames; k++) {
             let chess = new Chess();
-            
+        
             if (chess.load_pgn(array[k])) {
                 console.log(chess.header());
                 console.log(`Final position of game ${k} is `, chess.fen());
@@ -74,11 +78,20 @@ function analyze(req, res) {
             for (let i = 0; i < history.length && i < req.body.numOfMoves; i++) {
                 chess1.move(history[i]);
             }
+            if (chess1.fen() === fen) {
+                result++;
+                if (chess.header().Termination.split(" ")[0] === req.body.username)
+                    won++;
+                else if (chess.header().Termination.split(" ")[0] === "Game")
+                    drawn++;
+                else
+                    lost++;
+            }
             console.log(`Position of game ${k} at move 10 is `, chess1.fen());
 
         }
 
-        return res.status(200).send({message: "Done"});
+        return res.status(200).send({message: "Done", result: result, won: won, lost: lost, drawn: drawn});
     });
 }
 function helper(req, res) {
