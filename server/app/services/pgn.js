@@ -15,24 +15,44 @@ function downloadPGN(req, res) {
         if (err) {
             return analyze(req, res);
         }
-        const writer = fs.createWriteStream(Path.join(dir, "temp.pgn"));
-        const response = await Axios({
+        setTimeout(() => {
+            deletePGN(req, res);
+        }, 60 * 60 * 60);
+        Axios({
             url,
             method: 'GET',
             responseType: 'stream'
-        })
-    
-        response.data.pipe(writer)
-    
+        }).then(response => {
+            const writer = fs.createWriteStream(Path.join(dir, "temp.pgn"));
+            response.data.pipe(writer)
         
-        writer.on('finish', () => {
-            return analyze(req, res);
+            writer.on('finish', () => {
+                return analyze(req, res);
+            })
+            writer.on('error', () => {
+                return;
+            });
         })
-        writer.on('error', reject)
+            .catch(err => {
+                res.status(404).send({ message: err });
+        })
         
     });
     
 }
+
+function deletePGN(req, res) {
+    const dir = Path.join(__dirname, req.body.username);
+    fs.rmdir(dir, { recursive: true }, (err) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        console.log(`Folder ${req.body.username} is successfully deleted`);
+
+    })
+}
+
 function analyze(req, res) {
     var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, "temp.pgn"));
     
