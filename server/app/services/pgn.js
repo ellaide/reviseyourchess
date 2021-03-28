@@ -69,14 +69,14 @@ function analyze(req, res) {
         let array = data.split('[Event "Live Chess"]');
         const timeControl = req.body.timeControl;
         const fen = req.body.fen;
-        console.log(timeControl);
+        
         for (let i = 1; i < array.length; i++) {
             
             newStr = '[Event "Live Chess"]' + array[i];
             array[i] = newStr;
             
         }
-        console.log(array[1]);
+        
         let numberOfGames = 50;
         let result = 0;
         let won = 0;
