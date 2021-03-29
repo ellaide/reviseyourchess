@@ -1,4 +1,8 @@
 import react, { Component } from 'react';
+const KNIGHT_MOVEMENTS = [
+    [1, 2],
+    [-1, 2],
+    [1, -2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
 class Piece extends Component {
     constructor(props) {
         super(props);
@@ -18,6 +22,8 @@ class Empty extends Component {
     render() {
         return (
             <div style={{ width: "45px", height: "45px" }}>
+                {this.props.attacked && <div className="circle">
+                </div>}
             </div>
         )
     }
@@ -66,6 +72,47 @@ class ChessBoard extends Component {
         this.setState({
             selected: Number(key)
         })
+        console.log(KNIGHT_MOVEMENTS);
+        let index = Number(key);
+        let x = Math.floor(index / 8);
+        let y = index % 8;
+        console.log(x + " " + y);
+        let piece = this.state.board[x][y];
+        let clone = this.state.board.map(arr => arr.slice());
+        for (let i = 0; i < clone.length; i++) {
+            for (let j = 0; j < clone[i].length; j++) {
+                if (clone[i][j] === '.') {
+                    clone[i][j] = '0';
+                }
+            }
+        }
+        if (piece === 'P') {
+            if (clone[x - 1][y] === '0') {
+                clone[x - 1][y] = '.';
+            }
+        }
+        else if (piece === 'p') {
+            if (clone[x + 1][y] === '0') {
+                clone[x + 1][y] = '.';
+            }
+        }
+        if (piece === 'N' || piece === 'n') {
+            for (let i = 0; i < KNIGHT_MOVEMENTS.length; i++) {
+                let currX = x + KNIGHT_MOVEMENTS[i][0];
+                let currY = y + KNIGHT_MOVEMENTS[i][1];
+                if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                    continue;
+                }
+                console.log(currX + " " + currY);
+                if (clone[currX][currY] === '0') {
+                    clone[currX][currY] = '.';
+                }
+            }
+        }
+        this.setState({
+            board: clone
+        });
+        console.log(clone);
     }
     renderBoard() {
         let cellBoard = this.state.board.map((row, i) => {
@@ -73,11 +120,14 @@ class ChessBoard extends Component {
                 <div className="row">
                     { row.map((x, j) => {
                         let color = ((i * 7) + j) % 2 == 0 ? "#f8f9fa" : "#6c757d";
-                        console.log(this.state.selected);
+                        
                         let key = i * 8 + j;
                         let style = ((i * 8 + j) === this.state.selected) ? { backgroundColor: "#17a2b8" } : { backgroundColor: color };
                         if (x === '0') {
                             return <Cell empty key={ key } style={style} piece={<Empty />} />;
+                        }
+                        else if (x === '.') {
+                            return <Cell empty key={ key } style={style} piece={<Empty attacked/>} />;
                         }
                         return <Cell id={ key } key={ key } onClick={ this.select } style={style} piece={<Piece black={x !== x.toUpperCase()} piece={x} />}/>
                         
