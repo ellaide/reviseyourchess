@@ -1,8 +1,8 @@
 import react, { Component } from 'react';
-const KNIGHT_MOVEMENTS = [
-    [1, 2],
-    [-1, 2],
-    [1, -2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
+const KNIGHT_MOVEMENTS = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
+const BISHOP_MOVEMENTS = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+const ROOK_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+const QUEEN_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]
 class Piece extends Component {
     constructor(props) {
         super(props);
@@ -68,17 +68,42 @@ class ChessBoard extends Component {
         }
         this.select = this.select.bind(this);
     }
+    resetDots(board) {
+
+    }
     select(key) {
-        this.setState({
-            selected: Number(key)
-        })
-        console.log(KNIGHT_MOVEMENTS);
+        
         let index = Number(key);
         let x = Math.floor(index / 8);
         let y = index % 8;
+        let clone = this.state.board.map(arr => arr.slice());
+        
+        if (this.state.board[x][y] === '.') {
+            let selectedX = Math.floor(this.state.selected / 8);
+            let selectedY = this.state.selected % 8;
+            let attackingPiece = this.state.board[selectedX][selectedY];
+            clone[selectedX][selectedY] = '0';
+            clone[x][y] = attackingPiece;
+            for (let i = 0; i < clone.length; i++) {
+                for (let j = 0; j < clone[i].length; j++) {
+                    if (clone[i][j] === '.') {
+                        clone[i][j] = '0';
+                    }
+                }
+            }
+            this.setState({
+                board: clone,
+                selected: -1
+            });
+            return;
+        }
+        this.setState({
+            selected: index
+        })
+        console.log(KNIGHT_MOVEMENTS);
         console.log(x + " " + y);
         let piece = this.state.board[x][y];
-        let clone = this.state.board.map(arr => arr.slice());
+        
         for (let i = 0; i < clone.length; i++) {
             for (let j = 0; j < clone[i].length; j++) {
                 if (clone[i][j] === '.') {
@@ -103,7 +128,67 @@ class ChessBoard extends Component {
                 if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
                     continue;
                 }
-                console.log(currX + " " + currY);
+                if (clone[currX][currY] === '0') {
+                    clone[currX][currY] = '.';
+                }
+            }
+        }
+        if (piece === 'B' || piece === 'b') {
+            for (let i = 0; i < BISHOP_MOVEMENTS.length; i++) {
+                for (let j = 1; j < 8; j++) {
+                    let currX = x + BISHOP_MOVEMENTS[i][0] * j;
+                    let currY = y + BISHOP_MOVEMENTS[i][1] * j;
+                    if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                        continue;
+                    }
+                    if (clone[currX][currY] === '0') {
+                        clone[currX][currY] = '.';
+                    }
+                    else
+                        break;
+                }
+            }
+        }
+        if (piece === 'R' || piece === 'r') {
+            for (let i = 0; i < ROOK_MOVEMENTS.length; i++) {
+                for (let j = 1; j < 8; j++) {
+                    let currX = x + ROOK_MOVEMENTS[i][0] * j;
+                    let currY = y + ROOK_MOVEMENTS[i][1] * j;
+                    if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                        continue;
+                    }
+                    if (clone[currX][currY] === '0') {
+                        clone[currX][currY] = '.';
+                    }
+                    else
+                        break; 
+                }
+            }
+        }
+        if (piece === 'Q' || piece === 'q') {
+            for (let i = 0; i < QUEEN_MOVEMENTS.length; i++) {
+                for (let j = 1; j < 8; j++) {
+                    let currX = x + QUEEN_MOVEMENTS[i][0] * j;
+                    let currY = y + QUEEN_MOVEMENTS[i][1] * j;
+                    if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                        continue;
+                    }
+                    if (clone[currX][currY] === '0') {
+                        clone[currX][currY] = '.';
+                    }
+                    else
+                        break; 
+                }
+            }
+        }
+        if (piece === 'K' || piece === 'k') {
+            for (let i = 0; i < QUEEN_MOVEMENTS.length; i++) {
+                
+                let currX = x + QUEEN_MOVEMENTS[i][0];
+                let currY = y + QUEEN_MOVEMENTS[i][1];
+                if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                    continue;
+                }
                 if (clone[currX][currY] === '0') {
                     clone[currX][currY] = '.';
                 }
@@ -124,10 +209,10 @@ class ChessBoard extends Component {
                         let key = i * 8 + j;
                         let style = ((i * 8 + j) === this.state.selected) ? { backgroundColor: "#17a2b8" } : { backgroundColor: color };
                         if (x === '0') {
-                            return <Cell empty key={ key } style={style} piece={<Empty />} />;
+                            return <Cell empty id={ key } key={ key } style={style} piece={<Empty />} />;
                         }
                         else if (x === '.') {
-                            return <Cell empty key={ key } style={style} piece={<Empty attacked/>} />;
+                            return <Cell id={ key } onClick={ this.select } key={ key } style={style} piece={<Empty attacked/>} />;
                         }
                         return <Cell id={ key } key={ key } onClick={ this.select } style={style} piece={<Piece black={x !== x.toUpperCase()} piece={x} />}/>
                         
