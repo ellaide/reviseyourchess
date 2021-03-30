@@ -64,7 +64,8 @@ class ChessBoard extends Component {
         ];
         this.state = {
             board: board,
-            selected: -1
+            selected: -1,
+            attacked: []
         }
         this.select = this.select.bind(this);
     }
@@ -77,7 +78,7 @@ class ChessBoard extends Component {
         let x = Math.floor(index / 8);
         let y = index % 8;
         let clone = this.state.board.map(arr => arr.slice());
-        
+        let attacked = [];
         if (this.state.board[x][y] === '.') {
             let selectedX = Math.floor(this.state.selected / 8);
             let selectedY = this.state.selected % 8;
@@ -93,7 +94,8 @@ class ChessBoard extends Component {
             }
             this.setState({
                 board: clone,
-                selected: -1
+                selected: -1,
+                attacked: []
             });
             return;
         }
@@ -130,6 +132,12 @@ class ChessBoard extends Component {
                 }
                 if (clone[currX][currY] === '0') {
                     clone[currX][currY] = '.';
+                }
+                else if (piece === 'n' && clone[currX][currY].toUpperCase() === clone[currX][currY]) {
+                    attacked.push(currX * 8 + currY);
+                }
+                else if (piece === 'N' && clone[currX][currY].toUpperCase() !== clone[currX][currY]){
+                    attacked.push(currX * 8 + currY);
                 }
             }
         }
@@ -195,9 +203,11 @@ class ChessBoard extends Component {
             }
         }
         this.setState({
-            board: clone
+            board: clone,
+            attacked: attacked
         });
-        console.log(clone);
+        
+        console.log(attacked);
     }
     renderBoard() {
         let cellBoard = this.state.board.map((row, i) => {
@@ -208,13 +218,14 @@ class ChessBoard extends Component {
                         
                         let key = i * 8 + j;
                         let style = ((i * 8 + j) === this.state.selected) ? { backgroundColor: "#17a2b8" } : { backgroundColor: color };
+                        style = this.state.attacked.includes(key) ? { backgroundColor: "red" } : style;
                         if (x === '0') {
                             return <Cell empty id={ key } key={ key } style={style} piece={<Empty />} />;
                         }
                         else if (x === '.') {
                             return <Cell id={ key } onClick={ this.select } key={ key } style={style} piece={<Empty attacked/>} />;
                         }
-                        return <Cell id={ key } key={ key } onClick={ this.select } style={style} piece={<Piece black={x !== x.toUpperCase()} piece={x} />}/>
+                        return <Cell id={key} key={key} onClick={this.select} style={style} piece={<Piece black={x !== x.toUpperCase()} piece={x} />}/>
                         
                     })}
                 </div>
