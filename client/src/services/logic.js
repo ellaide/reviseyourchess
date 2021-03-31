@@ -7,10 +7,11 @@ const KING_MOVEMENTS = QUEEN_MOVEMENTS;
 
 const matching = { 'q': QUEEN_MOVEMENTS, 'r': ROOK_MOVEMENTS, 'b': BISHOP_MOVEMENTS };
 
-const main = (board, attacked, prevSelected, currSelected) => {
+const main = (board, attacked, prevSelected, currSelected, whiteToMove) => {
     let x = Math.floor(currSelected / 8);
     let y = currSelected % 8;
     let piece = board[x][y];
+    let moved = false;
     if (piece === '0') {
         removeDots(board);
         currSelected = -1;
@@ -24,14 +25,19 @@ const main = (board, attacked, prevSelected, currSelected) => {
         board[x][y] = attackingPiece;
         currSelected = -1;
         attacked = [];
+        moved = true;
         removeDots(board);
+    }
+    else if ((isBlack(piece) && whiteToMove) || (!isBlack(piece) && !whiteToMove)) {
+        console.log("WHY");
+        currSelected = prevSelected;
     }
     else {
         removeDots(board);
         attacked = functionMatching[piece.toLowerCase()](piece, board, x, y);
     }
 
-    return {attacked: attacked, board: board, selected: currSelected};
+    return [{attacked: attacked, board: board, selected: currSelected}, moved];
 
 }
 const move = () => {
