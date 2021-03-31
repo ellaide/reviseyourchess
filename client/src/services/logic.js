@@ -11,7 +11,12 @@ const main = (board, attacked, prevSelected, currSelected) => {
     let x = Math.floor(currSelected / 8);
     let y = currSelected % 8;
     let piece = board[x][y];
-    if (piece === '.' || attacked.includes(x * 8 + y)) {
+    if (piece === '0') {
+        removeDots(board);
+        currSelected = -1;
+        attacked = [];
+    }
+    else if (piece === '.' || attacked.includes(x * 8 + y)) {
         let selectedX = Math.floor(prevSelected / 8);
         let selectedY = prevSelected % 8;
         let attackingPiece = board[selectedX][selectedY];

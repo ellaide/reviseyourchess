@@ -8,9 +8,6 @@ class Cell extends Component {
         this.handleClick = this.handleClick.bind(this);
     }
     handleClick() {
-        if (this.props.empty) {
-            return;
-        }
         this.props.onClick(this.props.id);
     }
 
@@ -43,9 +40,6 @@ class ChessBoard extends Component {
         }
         this.select = this.select.bind(this);
     }
-    resetDots(board) {
-
-    }
     select(key) {
         
         let index = Number(key);
@@ -53,12 +47,12 @@ class ChessBoard extends Component {
         let board = this.state.board.map(arr => arr.slice());
         let attacked = this.state.attacked.slice();
         
-        
+        console.log(board);
         let result = main(board, attacked, this.state.selected, index);
 
         this.setState(result);
         
-        console.log(attacked);
+        
     }
     renderBoard() {
         let cellBoard = this.state.board.map((row, i) => {
@@ -71,10 +65,10 @@ class ChessBoard extends Component {
                         let style = ((i * 8 + j) === this.state.selected) ? { backgroundColor: "#87a2b8" } : { backgroundColor: color };
                         style = this.state.attacked.includes(key) ? { backgroundColor: "#b8f9fb" } : style;
                         if (x === '0') {
-                            return <Cell empty id={ key } key={ key } style={style} piece={<Empty />} />;
+                            return <Cell empty id={key} onClick={this.select} key={ key } style={style} piece={<Empty />} />;
                         }
                         else if (x === '.') {
-                            return <Cell id={ key } onClick={ this.select } key={ key } style={style} piece={<Empty attacked/>} />;
+                            return <Cell id={ key } onClick={this.select } key={ key } style={style} piece={<Empty attacked/>} />;
                         }
                         return <Cell id={key} key={key} onClick={this.select} style={style} piece={<Piece black={x !== x.toUpperCase()} piece={x} />}/>
                         
