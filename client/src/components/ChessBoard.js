@@ -2,7 +2,8 @@ import react, { Component } from 'react';
 const KNIGHT_MOVEMENTS = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
 const BISHOP_MOVEMENTS = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
 const ROOK_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-const QUEEN_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+const QUEEN_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+const PAWN_MOVEMENTS = [[1, 0], [2, 0], [1, 1], [1, -1]];
 class Piece extends Component {
     constructor(props) {
         super(props);
@@ -79,7 +80,7 @@ class ChessBoard extends Component {
         let y = index % 8;
         let clone = this.state.board.map(arr => arr.slice());
         let attacked = [];
-        if (this.state.board[x][y] === '.') {
+        if (this.state.board[x][y] === '.' || this.state.attacked.includes(index)) {
             let selectedX = Math.floor(this.state.selected / 8);
             let selectedY = this.state.selected % 8;
             let attackingPiece = this.state.board[selectedX][selectedY];
@@ -114,15 +115,41 @@ class ChessBoard extends Component {
             }
         }
         if (piece === 'P') {
-            if (clone[x - 1][y] === '0') {
-                clone[x - 1][y] = '.';
+            for (let i = 0; i < PAWN_MOVEMENTS.length; i++) {
+                let currX = x - PAWN_MOVEMENTS[i][0];
+                let currY = y + PAWN_MOVEMENTS[i][1];
+                if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                    continue;
+                }
+                if (clone[currX][currY] === '0') {
+                    if (i == 0 || (i == 1 && x == 6))
+                        clone[currX][currY] = '.';
+                }
+                else if (i >= 2 && (clone[currX][currY].toUpperCase() !== clone[currX][currY])) {
+                    attacked.push(currX * 8 + currY);
+                } 
+                
+
             }
         }
         else if (piece === 'p') {
-            if (clone[x + 1][y] === '0') {
-                clone[x + 1][y] = '.';
+            for (let i = 0; i < PAWN_MOVEMENTS.length; i++) {
+                let currX = x + PAWN_MOVEMENTS[i][0];
+                let currY = y + PAWN_MOVEMENTS[i][1];
+                if (currX < 0 || currX >= 8 || currY < 0 || currY >= 8) {
+                    continue;
+                }
+                if (clone[currX][currY] === '0') {
+                    if (i == 0 || (i == 1 && x == 1))
+                        clone[currX][currY] = '.';
+                }
+                else if (i >= 2 && (clone[currX][currY].toUpperCase() === clone[currX][currY])) {
+                    attacked.push(currX * 8 + currY);
+                } 
+                
+
             }
-        }
+        }     
         if (piece === 'N' || piece === 'n') {
             for (let i = 0; i < KNIGHT_MOVEMENTS.length; i++) {
                 let currX = x + KNIGHT_MOVEMENTS[i][0];
@@ -152,6 +179,14 @@ class ChessBoard extends Component {
                     if (clone[currX][currY] === '0') {
                         clone[currX][currY] = '.';
                     }
+                    else if (piece === 'b' && clone[currX][currY].toUpperCase() === clone[currX][currY]) {
+                        attacked.push(currX * 8 + currY);
+                        break;
+                    }
+                    else if (piece === 'B' && clone[currX][currY].toUpperCase() !== clone[currX][currY]){
+                        attacked.push(currX * 8 + currY);
+                        break;
+                    }
                     else
                         break;
                 }
@@ -167,6 +202,14 @@ class ChessBoard extends Component {
                     }
                     if (clone[currX][currY] === '0') {
                         clone[currX][currY] = '.';
+                    }
+                   else if (piece === 'r' && clone[currX][currY].toUpperCase() === clone[currX][currY]) {
+                        attacked.push(currX * 8 + currY);
+                        break;
+                    }
+                    else if (piece === 'R' && clone[currX][currY].toUpperCase() !== clone[currX][currY]){
+                        attacked.push(currX * 8 + currY);
+                        break;
                     }
                     else
                         break; 
@@ -184,6 +227,14 @@ class ChessBoard extends Component {
                     if (clone[currX][currY] === '0') {
                         clone[currX][currY] = '.';
                     }
+                   else if (piece === 'q' && clone[currX][currY].toUpperCase() === clone[currX][currY]) {
+                        attacked.push(currX * 8 + currY);
+                        break;
+                    }
+                    else if (piece === 'Q' && clone[currX][currY].toUpperCase() !== clone[currX][currY]){
+                        attacked.push(currX * 8 + currY);
+                        break;
+                    }
                     else
                         break; 
                 }
@@ -199,6 +250,14 @@ class ChessBoard extends Component {
                 }
                 if (clone[currX][currY] === '0') {
                     clone[currX][currY] = '.';
+                }
+                else if (piece === 'k' && clone[currX][currY].toUpperCase() === clone[currX][currY]) {
+                    attacked.push(currX * 8 + currY);
+                    
+                }
+                else if (piece === 'K' && clone[currX][currY].toUpperCase() !== clone[currX][currY]){
+                    attacked.push(currX * 8 + currY);
+                    
                 }
             }
         }
@@ -218,7 +277,7 @@ class ChessBoard extends Component {
                         
                         let key = i * 8 + j;
                         let style = ((i * 8 + j) === this.state.selected) ? { backgroundColor: "#17a2b8" } : { backgroundColor: color };
-                        style = this.state.attacked.includes(key) ? { backgroundColor: "red" } : style;
+                        style = this.state.attacked.includes(key) ? { backgroundColor: "#b8f9fb" } : style;
                         if (x === '0') {
                             return <Cell empty id={ key } key={ key } style={style} piece={<Empty />} />;
                         }
