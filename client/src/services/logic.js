@@ -4,10 +4,16 @@ const ROOK_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 const QUEEN_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 const PAWN_MOVEMENTS = [[1, 0], [2, 0], [1, 1], [1, -1]];
 const KING_MOVEMENTS = QUEEN_MOVEMENTS;
+const CASTLING_MOVEMENTS = [[0, 2]];
+/* For castling privileges */
+const LEFT_ROOK = 4;
+const KING = 2;
+const RIGHT_ROOK = 1;
+
 
 const matching = { 'q': QUEEN_MOVEMENTS, 'r': ROOK_MOVEMENTS, 'b': BISHOP_MOVEMENTS };
 
-const main = (board, attacked, prevSelected, currSelected, whiteToMove) => {
+const main = (board, attacked, prevSelected, currSelected, whiteToMove, castling) => {
     let x = Math.floor(currSelected / 8);
     let y = currSelected % 8;
     let piece = board[x][y];
@@ -26,21 +32,52 @@ const main = (board, attacked, prevSelected, currSelected, whiteToMove) => {
         currSelected = -1;
         attacked = [];
         moved = true;
+        if (attackingPiece.toLowerCase() === 'k') {
+            castling = castle(board, y, selectedY, whiteToMove, castling);
+        }
+        else if (attackingPiece.toLowerCase() === 'r') {
+            let start = whiteToMove ? 8 : 1;
+            let isLeft = selectedY == 0 ? true : false;
+            if (isLeft) {
+                if (castling & (start << 2))
+                    castling -= start << 2;
+            }
+            else {
+                if (castling & start)
+                    castling -= start;
+            }
+        }
         removeDots(board);
     }
     else if ((isBlack(piece) && whiteToMove) || (!isBlack(piece) && !whiteToMove)) {
-        console.log("WHY");
         currSelected = prevSelected;
     }
     else {
         removeDots(board);
-        attacked = functionMatching[piece.toLowerCase()](piece, board, x, y);
+        attacked = functionMatching[piece.toLowerCase()](piece, board, x, y, castling);
     }
 
-    return [{attacked: attacked, board: board, selected: currSelected}, moved];
+    return [{attacked: attacked, board: board, selected: currSelected, castling: castling}, moved];
 
 }
-const move = () => {
+const castle = (board, currPosKing, prevPosKing, whiteToMove, castling) => {
+    if (Math.abs(prevPosKing - currPosKing) == 1) {
+        return castling;
+    }
+    if (prevPosKing - currPosKing == 2) {
+        let rookX = whiteToMove ? 7 : 0;
+        let rookY = 0;
+        board[rookX][rookY] = '0';
+        board[rookX][currPosKing + 1] = whiteToMove ? 'R' : 'r';
+    }
+    else if (currPosKing - prevPosKing == 2) {
+        let rookX = whiteToMove ? 7 : 0;
+        let rookY = 7;
+        board[rookX][rookY] = '0';
+        board[rookX][currPosKing - 1] = whiteToMove ? 'R' : 'r';
+    }
+    castling -= whiteToMove ? 1 << 4 : 1 << 1;
+    return castling;
 
 }
 
@@ -87,8 +124,50 @@ const infinitePieces = (piece, board, x, y) => {
     return attacked;
 }
 
-const king = (piece, board, x, y) => {
+const getCastling = (board, x, y, castling) => {
+    let black = isBlack(board[x][y]);
+    if (black) {
+        castling <<= 3;
+        castling >>= 3;
+    }
+    else {
+        castling >>= 3;
+    }
+    return castling;
+
+}
+
+const king = (piece, board, x, y, castling) => {
     let attacked = [];
+
+
+    castling = getCastling(board, x, y, castling);
+    console.log(castling);
+    /* Castle to the left */
+    if ((castling & KING) && (castling & LEFT_ROOK)) {
+        let i = 1;
+        for (i; i < 4; i++) {
+            if (board[x][y - i] !== '0')
+                break;
+        }
+        if (i == 4)
+            board[x][y - CASTLING_MOVEMENTS[0][1]] = '.';
+    }
+    /* Castle to the right */
+    if ((castling & KING) && (castling & RIGHT_ROOK)) {
+        let i = 1;
+        for (i = 1; i < 3; i++) {
+            if (board[x][y + i] !== '0') {
+                break;
+            }
+        }
+        
+        if (i == 3)
+            board[x][y + CASTLING_MOVEMENTS[0][1]] = '.';
+        
+    }
+
+    
     for (let i = 0; i < KING_MOVEMENTS.length; i++) {
         
         let currX = x + KING_MOVEMENTS[i][0];
@@ -108,7 +187,6 @@ const king = (piece, board, x, y) => {
             
         }
     }
-
     return attacked;
 }
 
@@ -132,6 +210,7 @@ const pawn = (piece, board, x, y) => {
             attacked.push(currX * 8 + currY);
         }
     }
+
     return attacked;
 }
 

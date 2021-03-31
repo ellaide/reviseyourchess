@@ -37,7 +37,8 @@ class ChessBoard extends Component {
             board: board,
             selected: -1,
             attacked: [],
-            whiteToMove: true
+            whiteToMove: true,
+            castling: 63
         }
         this.select = this.select.bind(this);
     }
@@ -49,7 +50,7 @@ class ChessBoard extends Component {
         let attacked = this.state.attacked.slice();
         
         console.log(board);
-        let [result, moved] = main(board, attacked, this.state.selected, index, this.state.whiteToMove);
+        let [result, moved] = main(board, attacked, this.state.selected, index, this.state.whiteToMove, this.state.castling);
 
         this.setState({...result,  whiteToMove: (moved) ? !this.state.whiteToMove : this.state.whiteToMove});
         
