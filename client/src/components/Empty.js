@@ -6,7 +6,7 @@ class Empty extends Component {
     }
     render() {
         return (
-            <div style={{ width: "45px", height: "45px" }}>
+            <div style={{ width: "60px", height: "60px" }}>
                 {this.props.attacked && <div className="circle">
                 </div>}
             </div>

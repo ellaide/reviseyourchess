@@ -13,7 +13,7 @@ class Cell extends Component {
 
     render() {
         return (
-            <div onClick={this.handleClick} style={this.props.style} className="col-12-1">
+            <div onClick={this.handleClick} style={{...this.props.style, cursor: "pointer"}} className="col-12-1">
                 { this.props.piece }
             </div>
         )
