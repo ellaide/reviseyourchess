@@ -5,6 +5,7 @@ const QUEEN_MOVEMENTS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1,
 const PAWN_MOVEMENTS = [[1, 0], [2, 0], [1, 1], [1, -1]];
 const KING_MOVEMENTS = QUEEN_MOVEMENTS;
 const CASTLING_MOVEMENTS = [[0, 2]];
+const COL_CORRESPONDENCE = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 /* For castling privileges */
 const LEFT_ROOK = 4;
 const KING = 2;
@@ -13,15 +14,17 @@ const RIGHT_ROOK = 1;
 
 const matching = { 'q': QUEEN_MOVEMENTS, 'r': ROOK_MOVEMENTS, 'b': BISHOP_MOVEMENTS };
 
-const main = (board, attacked, prevSelected, currSelected, whiteToMove, castling) => {
+const main = (board, attacked, prevSelected, currSelected, whiteToMove, castling, lastMove, numOfMovesWithoutPawn, whichMove) => {
     let x = Math.floor(currSelected / 8);
     let y = currSelected % 8;
     let piece = board[x][y];
     let moved = false;
+    let enPassant = "";
     if (piece === '0') {
         removeDots(board);
         currSelected = -1;
         attacked = [];
+
     }
     else if (piece === '.' || attacked.includes(x * 8 + y)) {
         let selectedX = Math.floor(prevSelected / 8);
@@ -48,6 +51,21 @@ const main = (board, attacked, prevSelected, currSelected, whiteToMove, castling
             }
         }
         removeDots(board);
+
+        enPassant = detectEnPassant(attackingPiece, x, selectedX, y);
+        if (piece.toLowerCase() !== 'p' && attackingPiece.toLowerCase() !== 'p') {
+            numOfMovesWithoutPawn++;
+        }
+        else {
+            numOfMovesWithoutPawn = 0;
+        }
+        if (attackingPiece.toLowerCase() === 'p') {
+            attackingPiece = "";
+        }
+        lastMove = piece === '.' ? attackingPiece + COL_CORRESPONDENCE[y] + (8 - x) : attackingPiece + "x" + COL_CORRESPONDENCE[y] + (8 - x);
+        
+        
+        whichMove++;
     }
     else if ((isBlack(piece) && whiteToMove) || (!isBlack(piece) && !whiteToMove)) {
         currSelected = prevSelected;
@@ -57,8 +75,22 @@ const main = (board, attacked, prevSelected, currSelected, whiteToMove, castling
         attacked = functionMatching[piece.toLowerCase()](piece, board, x, y, castling);
     }
 
-    return [{attacked: attacked, board: board, selected: currSelected, castling: castling}, moved];
+    return [{attacked: attacked, board: board, selected: currSelected, castling: castling, whichMove: whichMove, lastMove: lastMove, numOfMovesWithoutPawn: numOfMovesWithoutPawn, enPassant: enPassant}, moved];
 
+}
+const detectEnPassant = (piece, x, prevX, column) => {
+    console.log(piece + " x is " + x + " prevX is " + prevX);
+    if (piece === 'p') {
+        if (x - prevX == 2) {
+            return COL_CORRESPONDENCE[column] + (8 - (x - 1));
+        }
+    }
+    if (piece === 'P') {
+        if (prevX - x == 2) {
+            return COL_CORRESPONDENCE[column] + (8 - (x + 1));
+        }
+    }
+    return "-";
 }
 const castle = (board, currPosKing, prevPosKing, whiteToMove, castling) => {
     if (Math.abs(prevPosKing - currPosKing) == 1) {

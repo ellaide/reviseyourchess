@@ -2,6 +2,7 @@ import react, { Component } from 'react';
 import Piece from "./Piece";
 import Empty from "./Empty";
 import main from "../services/logic";
+import { Button } from "reactstrap";
 class Cell extends Component {
     constructor(props) {
         super(props);
@@ -38,9 +39,14 @@ class ChessBoard extends Component {
             selected: -1,
             attacked: [],
             whiteToMove: true,
-            castling: 63
+            castling: 63,
+            lastMove: "-",
+            numOfMovesWithoutPawn: 0,
+            whichMove: 0,
+            enPassant: "-"
         }
         this.select = this.select.bind(this);
+        this.generateFEN = this.generateFEN.bind(this);
     }
     select(key) {
         
@@ -50,7 +56,7 @@ class ChessBoard extends Component {
         let attacked = this.state.attacked.slice();
         
         console.log(board);
-        let [result, moved] = main(board, attacked, this.state.selected, index, this.state.whiteToMove, this.state.castling);
+        let [result, moved] = main(board, attacked, this.state.selected, index, this.state.whiteToMove, this.state.castling, this.state.lastMove, this.state.numOfMovesWithoutPawn, this.state.whichMove);
 
         this.setState({...result,  whiteToMove: (moved) ? !this.state.whiteToMove : this.state.whiteToMove});
         
@@ -82,11 +88,63 @@ class ChessBoard extends Component {
         
     }
 
+    generateFEN() {
+        let fen = "";
+        let empty = 0;
+        for (let i = 0; i < this.state.board.length; i++) {
+            for (let j = 0; j < this.state.board[i].length; j++) {
+                if (this.state.board[i][j] !== '0') { 
+                    if (empty != 0) {
+                        fen += empty;
+                        empty = 0;
+                    }
+                    fen += this.state.board[i][j];
+                }
+                else {
+                    empty++;
+                }
+            }
+            if (empty != 0) {
+                fen += empty;
+                empty = 0;
+            }
+            fen += "/";
+        }
+
+        fen += this.state.whiteToMove ? " w " : " b ";
+
+        let castling = this.state.castling;
+        if (castling & 16) {
+            if (castling & 8) {
+                fen += "K";
+            }
+            if (castling & 32) {
+                fen += "Q";
+            }
+        }
+        if (castling & 2) {
+            if (castling & 1) {
+                fen += "k";
+            }
+            if (castling & 4) {
+                fen += "q";
+            }
+        }
+
+        fen += " " + this.state.enPassant + " ";
+        fen += this.state.numOfMovesWithoutPawn + " ";
+        fen += this.state.whichMove;
+
+        console.log(fen);
+
+
+    }
     render() {
         const cellBoard = this.renderBoard();
         return (
             <div className="container">   
-                { cellBoard }
+                { cellBoard}
+                <Button onClick={this.generateFEN} className="primary">FEN</Button>
             </div>
         )
     }
