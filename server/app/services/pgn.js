@@ -10,6 +10,7 @@ const { Chess } = require('chess.js')
 function downloadPGN(req, res) {  
     
     const url = `https://api.chess.com/pub/player/${req.body.username}/games/2021/03/pgn`;
+
     let dir = Path.join(__dirname, req.body.username);
     fs.mkdir(dir, async (err) => {
         if (err) {
@@ -87,7 +88,6 @@ function analyze(req, res) {
         
             if (chess.load_pgn(array[k])) {
                 console.log(chess.header());
-                console.log(`Final position of game ${k} is `, chess.fen());
             }
             if (timeControl && Number(chess.header().TimeControl) !== timeControl) {
                 numberOfGames++;
@@ -97,17 +97,24 @@ function analyze(req, res) {
             const history = chess.history();
             for (let i = 0; i < history.length && i < req.body.numOfMoves; i++) {
                 chess1.move(history[i]);
+                let arr = chess1.fen().split(" ");
+                arr.pop();
+                arr.pop();
+                arr.pop();
+                let compare = arr.join(" ");
+                if (compare === fen) {
+                    result++;
+                    if (chess.header().Termination.split(" ")[0] === req.body.username)
+                        won++;
+                    else if (chess.header().Termination.split(" ")[0] === "Game")
+                        drawn++;
+                    else
+                        lost++;
+                
+                    break;
+                }
             }
-            if (chess1.fen() === fen) {
-                result++;
-                if (chess.header().Termination.split(" ")[0] === req.body.username)
-                    won++;
-                else if (chess.header().Termination.split(" ")[0] === "Game")
-                    drawn++;
-                else
-                    lost++;
-            }
-            console.log(`Position of game ${k} at move 10 is `, chess1.fen());
+            
 
         }
 
