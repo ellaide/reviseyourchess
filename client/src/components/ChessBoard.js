@@ -3,6 +3,7 @@ import Piece from "./Piece";
 import Empty from "./Empty";
 import main from "../services/logic";
 import { Button } from "reactstrap";
+import axios from "axios";
 class Cell extends Component {
     constructor(props) {
         super(props);
@@ -88,7 +89,7 @@ class ChessBoard extends Component {
         
     }
 
-    generateFEN() {
+    async generateFEN() {
         let fen = "";
         let empty = 0;
         for (let i = 0; i < this.state.board.length; i++) {
@@ -108,7 +109,8 @@ class ChessBoard extends Component {
                 fen += empty;
                 empty = 0;
             }
-            fen += "/";
+            if (i != this.state.board.length - 1)
+                fen += "/";
         }
 
         fen += this.state.whiteToMove ? " w " : " b ";
@@ -131,11 +133,30 @@ class ChessBoard extends Component {
             }
         }
 
-        fen += " " + this.state.enPassant + " ";
-        fen += this.state.numOfMovesWithoutPawn + " ";
-        fen += this.state.whichMove;
+        
 
+        
         console.log(fen);
+
+        var data = {
+            username: "notGMArnur",
+            numOfMoves: this.state.whichMove,
+            timeControl: 600,
+            fen: fen
+        }
+        var config = {
+            method: 'post',
+            url: 'http://localhost:8080/analyze',
+            data: data
+        };
+
+        axios(config)
+            .then(function (response) {
+                console.log(JSON.stringify(response.data));
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
 
 
     }
