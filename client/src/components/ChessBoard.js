@@ -220,12 +220,12 @@ class ChessBoard extends Component {
     render() {
         const cellBoard = this.renderBoard();
         return (
-            <div className="container m-2">   
+            <div className="container">   
                 <div className="row justify-content-center">
-                    <div className="col-12-6 m-2">
+                    <div className="col-xs-6 m-2 mr-4">
                         {cellBoard}
                     </div>
-                    <div className="col-12-6 ml-4 mt-2 mr-2" style={{maxHeight: '480px', overflowY: 'auto'}}>
+                    <div className="col-xs-6 mt-2" style={{maxHeight: '480px', overflowY: 'auto'}}>
                         {!this.state.isLoading && this.state.analysisExist && 
                             <ListGroup>
                                 {this.state.analysis}
