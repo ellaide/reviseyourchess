@@ -2,7 +2,7 @@ import react, { Component } from 'react';
 import Piece from "./Piece";
 import Empty from "./Empty";
 import main from "../services/logic";
-import { Button } from "reactstrap";
+import { Button, ListGroupItem, ListGroup, ListGroupItemHeading, ListGroupItemText, NavLink } from "reactstrap";
 import axios from "axios";
 class Cell extends Component {
     constructor(props) {
@@ -44,7 +44,9 @@ class ChessBoard extends Component {
             lastMove: "-",
             numOfMovesWithoutPawn: 0,
             whichMove: 0,
-            enPassant: "-"
+            enPassant: "-",
+            analysis: <div/>,
+            analysisExist: false
         }
         this.select = this.select.bind(this);
         this.generateFEN = this.generateFEN.bind(this);
@@ -89,6 +91,50 @@ class ChessBoard extends Component {
         
     }
 
+    renderResults(response) {
+        let data = response.data
+        let games = [];
+        for (let game in data) {
+            if (game === "stats") {
+                games.push(
+                    <ListGroupItem>
+                        <ListGroup horizontal className="ml-10">
+                            <ListGroupItem color="success" style={{ fontWeight: "bold" }}>
+                                Wins <span class="badge badge-success badge-pill">{data[game].won}</span>
+                            </ListGroupItem>
+                            <ListGroupItem color="danger" style={{ fontWeight: "bold" }}>
+                                Losses <span class="badge badge-danger badge-pill">{data[game].lost}</span>
+                            </ListGroupItem>
+                            <ListGroupItem color="warning" style={{ fontWeight: "bold" }}>
+                                Draws <span class="badge badge-warning badge-pill">{data[game].drawn}</span>
+                            </ListGroupItem>
+                        </ListGroup>
+                    </ListGroupItem>
+                )
+            }
+            else {
+                games.push(
+                    <ListGroupItem>
+                        <ListGroupItemHeading> { game } </ListGroupItemHeading>
+                        <ListGroupItemText>
+                            <ListGroup flush horizontal>
+                                <ListGroupItem>
+                                    {data[game].result}
+                                </ListGroupItem>
+                                <ListGroupItem>
+                                    <a href={data[game].link}>{data[game].link}</a>
+                                </ListGroupItem>    
+                            </ListGroup>
+                        </ListGroupItemText>
+                    </ListGroupItem>
+                )    
+            }
+        }
+        this.setState({
+            analysis: games,
+            analysisExist: true
+        })
+    }
     async generateFEN() {
         let fen = "";
         let empty = 0;
@@ -150,22 +196,32 @@ class ChessBoard extends Component {
             data: data
         };
 
-        axios(config)
-            .then(function (response) {
-                console.log(JSON.stringify(response.data));
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+        const res = await axios(config)
+        
+        const display = this.renderResults(res);
+
 
 
     }
     render() {
         const cellBoard = this.renderBoard();
         return (
-            <div className="container">   
-                { cellBoard}
-                <Button onClick={this.generateFEN} className="primary">FEN</Button>
+            <div className="container m-4">   
+                <div className="row justify-content-center">
+                    <div className="col-12-6 m-2">
+                        {cellBoard}
+                    </div>
+                    <div className="col-12-6 ml-4 mt-2 mr-2" style={{maxHeight: '480px', overflowY: 'auto'}}>
+                        {this.state.analysisExist && 
+                            <ListGroup>
+                                {this.state.analysis}
+                            </ListGroup>
+                        }
+                    </div>
+                </div>
+                <div className="row justify-content-center mt-1">
+                    <Button onClick={this.generateFEN} className="primary">FEN</Button>
+                </div>
             </div>
         )
     }

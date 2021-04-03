@@ -12,13 +12,9 @@ class Main extends Component {
         return (
             <div>
                 <Header />
-                <div className="container m-4">
-                    <div className="row justify-content-center">
-                        <div className="col-12-8">
+
+
                             <ChessBoard />
-                        </div>
-                    </div>
-                </div>
                 <Footer />
             </div>
         )
