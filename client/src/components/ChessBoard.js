@@ -48,8 +48,9 @@ class ChessBoard extends Component {
             analysis: <div/>,
             analysisExist: false,
             isLoading: false,
-            username: "",
-            timeControl: 600
+            username: "notGMArnur",
+            timeControl: 600,
+            date: "2021-03"
         }
         this.select = this.select.bind(this);
         this.generateFEN = this.generateFEN.bind(this);
@@ -196,6 +197,7 @@ class ChessBoard extends Component {
             username: this.state.username,
             numOfMoves: this.state.whichMove,
             timeControl: this.state.timeControl,
+            date: this.state.date,
             fen: fen
         }
         var config = {
@@ -235,16 +237,22 @@ class ChessBoard extends Component {
                     
                         <Form>
                             <Row form>
-                                <Col md={6}>
+                                <Col md={4}>
                                     <FormGroup>
                                         <Label for="username">Chess.com Username</Label>
                                     <Input type="text" value={this.state.username} onChange={ this.handleChange } name="username" id="username" placeholder="Hikaru" readOnly={ this.state.isLoading }/>
                                     </FormGroup>
                                 </Col>
-                                <Col md={6}>
+                                <Col md={4}>
                                     <FormGroup>
                                         <Label for="timeControl">Time Control in seconds</Label>
                                         <Input type="number" value={this.state.timeControl} onChange={ this.handleChange } name="timeControl" id="timeControl" placeholder="180" readOnly={ this.state.isLoading }/>
+                                    </FormGroup>
+                                </Col>
+                                <Col md={4}>
+                                    <FormGroup>
+                                        <Label for="date">Date</Label>
+                                        <Input type="month" value={this.state.date} onChange={ this.handleChange } name="date" id="date" placeholder="2021/03" readOnly={ this.state.isLoading }/>
                                     </FormGroup>
                                 </Col>
                             </Row>
