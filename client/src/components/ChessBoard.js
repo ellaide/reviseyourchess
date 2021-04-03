@@ -2,7 +2,7 @@ import react, { Component } from 'react';
 import Piece from "./Piece";
 import Empty from "./Empty";
 import main from "../services/logic";
-import { Button, ListGroupItem, ListGroup, ListGroupItemHeading, ListGroupItemText, NavLink } from "reactstrap";
+import { Button, ListGroupItem, ListGroup, ListGroupItemHeading, ListGroupItemText, NavLink, Spinner, Form, FormGroup, Col, Row, Label, Input } from "reactstrap";
 import axios from "axios";
 class Cell extends Component {
     constructor(props) {
@@ -46,10 +46,14 @@ class ChessBoard extends Component {
             whichMove: 0,
             enPassant: "-",
             analysis: <div/>,
-            analysisExist: false
+            analysisExist: false,
+            isLoading: false,
+            username: "",
+            timeControl: 600
         }
         this.select = this.select.bind(this);
         this.generateFEN = this.generateFEN.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
     select(key) {
         
@@ -100,13 +104,13 @@ class ChessBoard extends Component {
                     <ListGroupItem>
                         <ListGroup horizontal className="ml-10">
                             <ListGroupItem color="success" style={{ fontWeight: "bold" }}>
-                                Wins <span class="badge badge-success badge-pill">{data[game].won}</span>
+                                Wins <span className="badge badge-success badge-pill">{data[game].won}</span>
                             </ListGroupItem>
                             <ListGroupItem color="danger" style={{ fontWeight: "bold" }}>
-                                Losses <span class="badge badge-danger badge-pill">{data[game].lost}</span>
+                                Losses <span className="badge badge-danger badge-pill">{data[game].lost}</span>
                             </ListGroupItem>
                             <ListGroupItem color="warning" style={{ fontWeight: "bold" }}>
-                                Draws <span class="badge badge-warning badge-pill">{data[game].drawn}</span>
+                                Draws <span className="badge badge-warning badge-pill">{data[game].drawn}</span>
                             </ListGroupItem>
                         </ListGroup>
                     </ListGroupItem>
@@ -122,7 +126,7 @@ class ChessBoard extends Component {
                                     {data[game].result}
                                 </ListGroupItem>
                                 <ListGroupItem>
-                                    <a href={data[game].link}>{data[game].link}</a>
+                                    <a href={data[game].link} target="_blank">{data[game].link}</a>
                                 </ListGroupItem>    
                             </ListGroup>
                         </ListGroupItemText>
@@ -140,7 +144,11 @@ class ChessBoard extends Component {
         let empty = 0;
         for (let i = 0; i < this.state.board.length; i++) {
             for (let j = 0; j < this.state.board[i].length; j++) {
-                if (this.state.board[i][j] !== '0') { 
+                if (this.state.board[i][j] !== '0') {
+                    if (this.state.board[i][j] === '.') {
+                        empty++;
+                        continue;
+                    }
                     if (empty != 0) {
                         fen += empty;
                         empty = 0;
@@ -182,12 +190,12 @@ class ChessBoard extends Component {
         
 
         
-        console.log(fen);
+        console.log(JSON.stringify(this.state));
 
         var data = {
-            username: "notGMArnur",
+            username: this.state.username,
             numOfMoves: this.state.whichMove,
-            timeControl: 600,
+            timeControl: this.state.timeControl,
             fen: fen
         }
         var config = {
@@ -195,32 +203,61 @@ class ChessBoard extends Component {
             url: 'http://localhost:8080/analyze',
             data: data
         };
-
+        this.setState({ isLoading: true });
         const res = await axios(config)
-        
+        this.setState({ isLoading: false });
         const display = this.renderResults(res);
+    }
 
-
-
+    handleChange(event) {
+        console.log(event);
+        let newState = { ...this.state };
+        newState[event.target.name] = event.target.value;
+        this.setState(newState);
     }
     render() {
         const cellBoard = this.renderBoard();
         return (
-            <div className="container m-4">   
+            <div className="container m-2">   
                 <div className="row justify-content-center">
                     <div className="col-12-6 m-2">
                         {cellBoard}
                     </div>
                     <div className="col-12-6 ml-4 mt-2 mr-2" style={{maxHeight: '480px', overflowY: 'auto'}}>
-                        {this.state.analysisExist && 
+                        {!this.state.isLoading && this.state.analysisExist && 
                             <ListGroup>
                                 {this.state.analysis}
                             </ListGroup>
                         }
                     </div>
                 </div>
-                <div className="row justify-content-center mt-1">
-                    <Button onClick={this.generateFEN} className="primary">FEN</Button>
+                <div className="row justify-content-center">
+                    
+                        <Form>
+                            <Row form>
+                                <Col md={6}>
+                                    <FormGroup>
+                                        <Label for="username">Chess.com Username</Label>
+                                    <Input type="text" value={this.state.username} onChange={ this.handleChange } name="username" id="username" placeholder="Hikaru" readOnly={ this.state.isLoading }/>
+                                    </FormGroup>
+                                </Col>
+                                <Col md={6}>
+                                    <FormGroup>
+                                        <Label for="timeControl">Time Control in seconds</Label>
+                                        <Input type="number" value={this.state.timeControl} onChange={ this.handleChange } name="timeControl" id="timeControl" placeholder="180" readOnly={ this.state.isLoading }/>
+                                    </FormGroup>
+                                </Col>
+                            </Row>
+                            <Col sm={{ size: 4, offset: 4 }}>
+                                <Button onClick={this.generateFEN} block color="primary" active={!this.state.isLoading} disabled={this.state.isLoading}>Analyze</Button>
+                            </Col>
+                        </Form>
+                    
+                    
+                        {this.state.isLoading && 
+                            <Spinner style={{position: 'absolute', width: '3rem', height: '3rem' }} />
+                        }
+                    
                 </div>
             </div>
         )
