@@ -8,37 +8,48 @@ const { Chess } = require('chess.js')
 
 
 function downloadPGN(req, res) {  
+
+    /**
+     * Format date
+     * req.body.date should be yyyy-mm
+     * Transform to yyyy/mm
+     */
+
+    let date = req.body.date.split("-").join("/");
     
-    const url = `https://api.chess.com/pub/player/${req.body.username}/games/2021/03/pgn`;
+    const url = `https://api.chess.com/pub/player/${req.body.username}/games/${date}/pgn`;
 
     let dir = Path.join(__dirname, req.body.username);
     fs.mkdir(dir, async (err) => {
-        if (err) {
-            return analyze(req, res);
-        }
-        setTimeout(() => {
-            deletePGN(req, res);
-        }, 1000 * 60 * 60);
-        Axios({
-            url,
-            method: 'GET',
-            responseType: 'stream'
-        }).then(response => {
-            const writer = fs.createWriteStream(Path.join(dir, "temp.pgn"));
-            response.data.pipe(writer)
-        
-            writer.on('finish', () => {
+        dir = Path.join(dir, req.body.date);
+        fs.mkdir(dir, async (err) => {
+            if (err) {
                 return analyze(req, res);
+            }
+            setTimeout(() => {
+                deletePGN(req, res);
+            }, 1000 * 60 * 60);
+            Axios({
+                url,
+                method: 'GET',
+                responseType: 'stream'
+            }).then(response => {
+                const writer = fs.createWriteStream(Path.join(dir, `temp.pgn`));
+                response.data.pipe(writer)
+            
+                writer.on('finish', () => {
+                    return analyze(req, res);
+                })
+                writer.on('error', () => {
+                    return;
+                });
             })
-            writer.on('error', () => {
-                return;
-            });
-        })
-            .catch(err => {
-                res.status(404).send({ message: err });
-        })
-        
-    });
+                .catch(err => {
+                    res.status(404).send({ message: err });
+            })
+            
+        });
+    })
     
 }
 
@@ -55,7 +66,7 @@ function deletePGN(req, res) {
 }
 
 function analyze(req, res) {
-    var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, "temp.pgn"));
+    var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, req.body.date, "temp.pgn"));
     
     let data = ''
     
