@@ -18,7 +18,7 @@ function downloadPGN(req, res) {
         }
         setTimeout(() => {
             deletePGN(req, res);
-        }, 60 * 60 * 60);
+        }, 1000 * 60 * 60);
         Axios({
             url,
             method: 'GET',
@@ -78,7 +78,7 @@ function analyze(req, res) {
             
         }
         
-        let numberOfGames = 50;
+        let numberOfGames = 100;
         
         
         let resData = { stats: { numberOfGames: 0, won: 0, drawn: 0, lost: 0 } };
@@ -94,7 +94,7 @@ function analyze(req, res) {
             }
             let chess1 = new Chess();
             const history = chess.history();
-            for (let i = 0; i < history.length && i < req.body.numOfMoves; i++) {
+            for (let i = 0; i < history.length && i < 20; i++) {
                 chess1.move(history[i]);
                 let arr = chess1.fen().split(" ");
                 let game = "Game " + (resData.stats.numberOfGames + 1);
