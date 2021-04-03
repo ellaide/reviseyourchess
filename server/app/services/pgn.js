@@ -79,10 +79,9 @@ function analyze(req, res) {
         }
         
         let numberOfGames = 50;
-        let result = 0;
-        let won = 0;
-        let lost = 0;
-        let drawn = 0;
+        
+        
+        let resData = { stats: { numberOfGames: 0, won: 0, drawn: 0, lost: 0 } };
         for (let k = 1; k < array.length && k < numberOfGames; k++) {
             let chess = new Chess();
         
@@ -98,19 +97,24 @@ function analyze(req, res) {
             for (let i = 0; i < history.length && i < req.body.numOfMoves; i++) {
                 chess1.move(history[i]);
                 let arr = chess1.fen().split(" ");
+                let game = "Game " + (resData.stats.numberOfGames + 1);
                 arr.pop();
                 arr.pop();
                 arr.pop();
                 let compare = arr.join(" ");
                 if (compare === fen) {
-                    result++;
-                    if (chess.header().Termination.split(" ")[0] === req.body.username)
-                        won++;
-                    else if (chess.header().Termination.split(" ")[0] === "Game")
-                        drawn++;
-                    else
-                        lost++;
-                
+
+                    resData = { ...resData, [game]: { result: chess.header().Termination, link: chess.header().Link }};
+                    resData.stats.numberOfGames++;
+                    if (chess.header().Termination.split(" ")[0] === req.body.username) {
+                        resData.stats.won++;
+                    }
+                    else if (chess.header().Termination.split(" ")[0] === "Game") {
+                        resData.stats.drawn++;
+                    }
+                    else {
+                        resData.stats.lost++;
+                    }
                     break;
                 }
             }
@@ -118,7 +122,7 @@ function analyze(req, res) {
 
         }
 
-        return res.status(200).send({message: "Done", result: result, won: won, lost: lost, drawn: drawn});
+        return res.status(200).send(resData);
     });
 }
 function helper(req, res) {
