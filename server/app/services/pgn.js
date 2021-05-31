@@ -130,7 +130,7 @@ function analyze(req, res) {
             
 
         }
-
+        console.log(resData);
         return res.status(200).send(resData);
     });
 }
