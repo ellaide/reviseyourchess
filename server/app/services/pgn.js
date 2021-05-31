@@ -89,7 +89,7 @@ function analyze(req, res) {
             
         }
         
-        let numberOfGames = 50;
+        let numberOfGames = 25;
         
         
         let resData = { stats: { numberOfGames: 0, won: 0, drawn: 0, lost: 0 } };
