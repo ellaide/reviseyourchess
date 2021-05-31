@@ -202,7 +202,7 @@ class ChessBoard extends Component {
         }
         var config = {
             method: 'post',
-            url: 'http://localhost:8080/analyze',
+            url: 'https://reviseyourchess-server.herokuapp.com/analyze',
             data: data
         };
         this.setState({ isLoading: true });
