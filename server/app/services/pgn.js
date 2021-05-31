@@ -72,7 +72,6 @@ function analyze(req, res) {
     
     readStream.on('data', function (chunk) {
         data += chunk.toString();
-        console.log(chunk.length);
     })
     
     
@@ -97,7 +96,7 @@ function analyze(req, res) {
             let chess = new Chess();
         
             if (chess.load_pgn(array[k])) {
-                console.log(chess.header());
+                //console.log(chess.header());
             }
             if (timeControl && Number(chess.header().TimeControl) !== timeControl) {
                 numberOfGames++;
