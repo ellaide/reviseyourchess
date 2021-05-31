@@ -72,7 +72,7 @@ function analyze(req, res) {
     
     readStream.on('data', function (chunk) {
         data += chunk.toString();
-        console.log(chunk.length);
+        //console.log(chunk.length);
     })
     
     
@@ -89,16 +89,14 @@ function analyze(req, res) {
             
         }
         
-        let numberOfGames = 100;
+        let numberOfGames = 50;
         
         
         let resData = { stats: { numberOfGames: 0, won: 0, drawn: 0, lost: 0 } };
         for (let k = 1; k < array.length && k < numberOfGames; k++) {
             let chess = new Chess();
         
-            if (chess.load_pgn(array[k])) {
-                console.log(chess.header());
-            }
+            chess.load_pgn(array[k]);
             if (timeControl && Number(chess.header().TimeControl) !== timeControl) {
                 numberOfGames++;
                 continue;
