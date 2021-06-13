@@ -19,7 +19,7 @@ function downloadPGN(req, res) {
     
     const url = `https://api.chess.com/pub/player/${req.body.username}/games/${date}/pgn`;
 
-    let dir = Path.join(__dirname, req.body.username);
+    let dir = Path.join("/tmp", req.body.username);
     fs.mkdir(dir, async (err) => {
         dir = Path.join(dir, req.body.date);
         fs.mkdir(dir, async (err) => {
@@ -54,7 +54,7 @@ function downloadPGN(req, res) {
 }
 
 function deletePGN(req, res) {
-    const dir = Path.join(__dirname, req.body.username);
+    const dir = Path.join("/tmp", req.body.username);
     fs.rmdir(dir, { recursive: true }, (err) => {
         if (err) {
             console.log(err);
@@ -66,7 +66,7 @@ function deletePGN(req, res) {
 }
 
 function analyze(req, res) {
-    var readStream = fs.createReadStream(Path.join(__dirname, req.body.username, req.body.date, "temp.pgn"));
+    var readStream = fs.createReadStream(Path.join("/tmp", req.body.username, req.body.date, "temp.pgn"));
     
     let data = ''
     
